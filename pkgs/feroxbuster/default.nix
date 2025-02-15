@@ -1,12 +1,11 @@
 {
   lib,
-  stdenv,
   fetchFromGitHub,
   openssl,
   pkg-config,
   rustPlatform,
-  Security,
-  SystemConfiguration,
+  pkgs,
+# Security,
 }:
 
 rustPlatform.buildRustPackage rec {
@@ -14,19 +13,14 @@ rustPlatform.buildRustPackage rec {
   version = "2.10.3";
 
   src = fetchFromGitHub {
-    owner = "epi052";
-    repo = pname;
-    tag = "v${version}";
-    hash = "sha256-3cznGVpZISLD2TbsHYyYYUTD55NmgBdNJ44V4XfZ40k=";
+    "owner" = "epi052";
+    "repo" = pname;
+    "rev" = "64113b8da434f51077867302968764fd641e9ffc";
+    "hash" = "sha256-/NgGlXYMxGxpX93SJ6gWgZW21cSSZsgo/WMvRuLw+Bw=";
   };
 
-  # disable linker overrides on aarch64-linux
-  postPatch = ''
-    rm .cargo/config
-  '';
-
   useFetchCargoVendor = true;
-  cargoHash = "sha256-DjmMoATagWGK2DHMc6YB0u2X5x5hnqgCwIGe3+Wmdic=";
+  cargoHash = "sha256-WpFx7Yq4Ll5AxCPs7sBJnqHqDi2to72l+L5acdvUXZc=";
 
   OPENSSL_NO_VENDOR = true;
 
@@ -34,14 +28,10 @@ rustPlatform.buildRustPackage rec {
     pkg-config
   ];
 
-  buildInputs =
-    [
-      openssl
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      Security
-      SystemConfiguration
-    ];
+  buildInputs = [
+    openssl
+    pkgs.seclists
+  ];
 
   # Tests require network access
   doCheck = false;
