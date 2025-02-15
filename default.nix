@@ -18,6 +18,7 @@
 
   example-package = pkgs.callPackage ./pkgs/example-package { };
   feroxbuster = pkgs.callPackage ./pkgs/feroxbuster { };
+  aforg = pkgs.callPackage ./pkgs/aforg { };
   # some-qt5-package = pkgs.libsForQt5.callPackage ./pkgs/some-qt5-package { };
   # ...
 }
