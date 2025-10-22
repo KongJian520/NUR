@@ -19,13 +19,10 @@ let
     hash = "sha256-mk++yUjbSDGXRe3AUUUYVPOunBm38Wt6uvZz8Rj9Q2Y=";
   };
 
-  # VVVV 新增：下载 Logo 文件 VVVV
-  # 假设该文件在仓库的 v1.4.4-1017 标签下
   yakitIcon = fetchurl {
-    # 构造 Logo 文件的下载 URL (注意：这基于常见约定，可能需要调整)
     url = "https://raw.githubusercontent.com/yaklang/yakit/f55d9005ab853ebc84403f1cda7f38a271f5c9b6/app/assets/yakitlogo.png";
     hash = "sha256-Q+onckCEc79efrtoycqmYA5YhH9ZR0/N+Leg2+S8VnU="; 
-    name = "${pname}.png"; # 指定文件名
+    name = "${pname}.png";
   };
   # ^^^^ 新增：下载 Logo 文件 ^^^^
 
@@ -58,7 +55,6 @@ appimageTools.wrapType2 rec {
   name = "${pname}-${version}";
 
   extraInstallCommands = ''
-    # 1. 手动安装 .desktop 文件
     mkdir -p $out/share/applications
     cp ${yakitDesktop} $out/share/applications/
     
@@ -68,7 +64,6 @@ appimageTools.wrapType2 rec {
     mkdir -p $out/share/pixmaps
     cp ${yakitIcon} $out/share/pixmaps/${pname}.png 
 
-    # 3. 修复符号链接（根据之前的经验，这个是必须的）
     ln -sf $out/bin/${pname}-${version} $out/bin/${pname}
   '';
 
