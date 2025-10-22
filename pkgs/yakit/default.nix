@@ -5,7 +5,7 @@
   lib,
   appimageTools,
   fetchurl,
-  writeText, # AppImage 打包通常需要 writeText 来生成 .desktop 文件，在此处也显式列出
+  writeText, # 用于生成 .desktop 文件
 }:
 let
   # 软件版本号
@@ -19,9 +19,8 @@ let
     # 文件的 SHA256 完整性校验哈希
     hash = "sha256-mk++yUjbSDGXRe3AUUUYVPOunBm38Wt6uvZz8Rj9Q2Y=";
   };
-
-  # 创建一个 .desktop 文件用于应用程序启动器和菜单集成
-  # 这个文件将通过 yakitDesktop 属性被 appimageTools.wrapType2 自动安装。
+  # 创建一个 .desktop 文件内容的 derivation
+  # VVVV 修复：改回 yakitDesktop，因为我们不再传递给 wrapType2 的 desktopName 参数 VVVV
   yakitDesktop = writeText "${pname}.desktop" ''
     [Desktop Entry]
     # 应用程序名称
@@ -29,7 +28,7 @@ let
     # 应用程序描述/注释
     Comment=实战化攻防安全测试平台
     # 执行命令，这里使用 pname，它会被 appimageTools.wrapType2 替换为实际的启动脚本
-    Exec=${pname}
+    Exec=${pname}-${version}
     # 是否在终端中运行
     Terminal=false
     # 应用程序类型
@@ -42,15 +41,17 @@ let
 in
 # 使用 appimageTools.wrapType2 函数来封装 AppImage 文件
 appimageTools.wrapType2 rec {
-  # 继承 let 块中定义的属性
-  inherit pname version src yakitDesktop;
+  # 继承 let 块中定义的属性 (只保留 wrapType2 真正需要的)
+  inherit pname version src;
+
   # 完整的包名，包含版本号
   name = "${pname}-${version}";
 
-  # 额外的安装命令：
-  # 移除之前导致构建失败的 substituteInPlace 命令，因为它试图修改一个不存在的文件。
-  # 你的自定义 yakitDesktop 文件应该已经被 appimageTools 自动安装到 $out/share/applications/。
-  extraInstallCommands = "";
+  extraInstallCommands = ''
+    # 手动安装 .desktop 文件
+    mkdir -p $out/share/applications
+    cp ${yakitDesktop} $out/share/applications/
+  '';
 
   # 软件包的元数据
   meta = {
@@ -65,7 +66,7 @@ appimageTools.wrapType2 rec {
     # 源代码的来源，此处表明它是包含原生二进制代码的预编译二进制文件。
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     # 维护者列表，当前为空
-    maintainers = [ ];
+    maintainers = [ "KongJian520" ];
     # 支持的平台，此处仅支持 64 位 Linux
     platforms = [ "x86_64-linux" ];
     # 最终安装到环境中的主程序名称
