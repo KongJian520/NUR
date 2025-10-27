@@ -1,33 +1,43 @@
+# default.nix for sliver
 {
   lib,
-  fetchFromGitHub,
-  goPackages,
+  stdenv,
+  fetchurl,
 }:
 
-let
-  # Fetch the sliver repository from GitHub. Replace the sha256 with the
-  # real value produced by `nix-prefetch-git` or by running `nix build` once.
-  src = fetchFromGitHub {
-    owner = "BishopFox";
-    repo = "sliver";
-    rev = "master"; # consider pinning to a tag/commit for reproducibility
-    fetchSubmodules = true;
-    sha256 = lib.fakeSha256; # placeholder: run `nix-prefetch-git` to get real hash
+stdenv.mkDerivation rec {
+  pname = "sliver";
+  version = "1.5.43";
+  clientSrc = fetchurl {
+    url = "https://github.com/BishopFox/sliver/releases/download/v${version}/sliver-client_linux";
+    sha256 = "sha256-30m/U3RyU8OC3lRP308v0XtYaswXy4HPTEFoxTUyJgk=";
   };
-  version = "v1.5.43";
-in
-goPackages.buildGoModule rec {
-  inherit src version;
-  pname = src.repo;
 
-  # buildGoModule will fetch Go modules during the build. If you prefer
-  # to vendor dependencies, vendor them and set `vendorSha256` instead.
+  serverSrc = fetchurl {
+    url = "https://github.com/BishopFox/sliver/releases/download/v${version}/sliver-server_linux";
+    sha256 = "sha256-iHO0XRru8Yg6j4DgqlDeRf5sXwtub2jLXjZb9ygcSz8=";
+  };
+
+  dontBuild = true;
+  dontUnpack = true;
+  # 安装阶段：将二进制文件复制到 $out/bin 目录下
+  installPhase = ''
+    mkdir -p $out/bin
+
+    # 复制客户端并重命名为 sliver-client
+    cp ${clientSrc} $out/bin/sliver-client
+    chmod +x $out/bin/sliver-client
+
+    # 复制服务器并重命名为 sliver-server
+    cp ${serverSrc} $out/bin/sliver-server
+    chmod +x $out/bin/sliver-server
+  '';
 
   meta = with lib; {
-    description = "Sliver - open-source adversary emulation/red-team framework";
+    description = "Adversary Emulation Framework";
     homepage = "https://github.com/BishopFox/sliver";
-    # I couldn't reliably detect the license automatically here; adjust if needed.
-    license = licenses.mit;
-    maintainers = with maintainers; [ ];
+    license = licenses.gpl3;
+    maintainers = with maintainers; [ "KongJian520" ];
+    mainProgram = "sliver-server";
   };
 }
