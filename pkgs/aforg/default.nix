@@ -48,5 +48,6 @@ pkgs.buildGoModule rec {
     license = licenses.mit;
     # 平台支持
     platforms = platforms.all;
+    mainProgram = "afrog";
   };
 }
